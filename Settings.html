@@ -733,30 +733,41 @@
             }
         };
 
-        onAuthStateChanged(auth, async (user) => {
-            if(user && user.emailVerified) {
-                document.getElementById('user-name').value = user.displayName || '';
-                document.getElementById('user-email').value = user.email;
-                
-                const emailStatusSpan = document.getElementById('email-status');
-                if(user.emailVerified) {
-                    emailStatusSpan.textContent = '✓ بريدك مؤكد';
-                    emailStatusSpan.className = 'email-status verified';
-                } else {
-                    emailStatusSpan.textContent = '⚠️ بريدك غير مؤكد - اضغط لإعادة الإرسال';
-                    emailStatusSpan.className = 'email-status unverified';
-                }
-                
-                await loadUserSettings(user.uid);
-            } else if(user && !user.emailVerified) {
-                showToast('يرجى تأكيد بريدك الإلكتروني أولاً', true);
-                setTimeout(() => {
-                    window.location.href = "login.html";
-                }, 2000);
-            } else {
+        let redirectDone = false;
+
+onAuthStateChanged(auth, async (user) => {
+    if(redirectDone) return;
+    
+    if(user && user.emailVerified) {
+        redirectDone = true;
+        document.getElementById('user-name').value = user.displayName || '';
+        document.getElementById('user-email').value = user.email;
+        
+        const emailStatusSpan = document.getElementById('email-status');
+        if(user.emailVerified) {
+            emailStatusSpan.textContent = '✓ بريدك مؤكد';
+            emailStatusSpan.className = 'email-status verified';
+        } else {
+            emailStatusSpan.textContent = '⚠️ بريدك غير مؤكد - اضغط لإعادة الإرسال';
+            emailStatusSpan.className = 'email-status unverified';
+        }
+        
+        await loadUserSettings(user.uid);
+    } else if(user && !user.emailVerified) {
+        redirectDone = true;
+        showToast('يرجى تأكيد بريدك الإلكتروني أولاً', true);
+        setTimeout(() => {
+            window.location.href = "login.html";
+        }, 2000);
+    } else if(!user) {
+        setTimeout(() => {
+            if(!redirectDone) {
+                redirectDone = true;
                 window.location.href = "login.html";
             }
-        });
+        }, 3000);
+    }
+});
 
         // Save Profile
         document.getElementById('save-profile').onclick = async () => {
