@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ISVRT - إدارة الطلاب | Firestore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p-blue: #0056b3;
+            --s-blue: #e3f2fd;
+            --accent: #f8fbff;
+            --white: #ffffff;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --shadow: 0 10px 30px rgba(0, 86, 179, 0.05);
+            --shadow-lg: 0 20px 40px rgba(0, 86, 179, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--s-blue) 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+
+        /* Desktop Sidebar */
+        .desktop-sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+            border-left: 1px solid rgba(0, 86, 179, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .brand-sub {
+            font-size: 0.7rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--gray);
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link:hover {
+            background: var(--s-blue);
+            color: var(--p-blue);
+            transform: translateX(-5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-right: 280px;
+            padding: 2rem;
+            transition: 0.3s;
+        }
+
+        /* Mobile Bottom Navigation - Improved */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            height: 75px;
+            border-top: 1px solid rgba(0, 86, 179, 0.15);
+            z-index: 2000;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-item-m {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--gray);
+            font-size: 0.7rem;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 8px 16px;
+            border-radius: 40px;
+            gap: 4px;
+            min-width: 70px;
+        }
+
+        .nav-item-m span:first-child {
+            font-size: 1.3rem;
+            transition: transform 0.2s ease;
+        }
+
+        .nav-item-m:hover {
+            background: var(--s-blue);
+            color: var(--p-blue);
+            transform: translateY(-3px);
+        }
+
+        .nav-item-m:hover span:first-child {
+            transform: scale(1.1);
+        }
+
+        .nav-item-m.active {
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3);
+        }
+
+        .nav-item-m.active span:first-child {
+            transform: scale(1.05);
+        }
+
+        /* Header Section */
+        .header-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .greeting h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--dark), var(--p-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .greeting p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Students Grid */
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 25px;
+        }
+
+        .student-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: var(--radius-xl);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .student-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--s-blue), var(--white));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: var(--shadow);
+        }
+
+        .name-tag {
+            font-weight: 900;
+            font-size: 1.2rem;
+            color: var(--dark);
+        }
+
+        .level-tag {
+            font-size: 0.8rem;
+            color: var(--gray);
+            font-weight: 600;
+            margin-top: 5px;
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--s-blue);
+            border-radius: 50px;
+        }
+
+        .card-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--white));
+            padding: 15px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item span {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .stat-item strong {
+            font-size: 1rem;
+            color: var(--p-blue);
+            font-weight: 900;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: none;
+            background: var(--accent);
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .action-btn.edit {
+            color: var(--p-blue);
+        }
+
+        .action-btn.edit:hover {
+            background: var(--s-blue);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.delete {
+            color: var(--danger);
+        }
+
+        .action-btn.delete:hover {
+            background: #fee2e2;
+            transform: translateY(-2px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 30px;
+            border-radius: var(--radius-xl);
+            max-width: 450px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .modal-field {
+            margin-bottom: 20px;
+        }
+
+        .modal-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .modal-field input, .modal-field select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal-field input:focus, .modal-field select:focus {
+            outline: none;
+            border-color: var(--p-blue);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.save {
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+        }
+
+        .modal-btn.save:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .modal-btn.cancel {
+            background: var(--gray);
+            color: white;
+        }
+
+        .modal-btn.cancel:hover {
+            background: #475569;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--dark), #1e293b);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            z-index: 3000;
+            animation: slideUp 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--gray);
+            background: rgba(255,255,255,0.5);
+            border-radius: var(--radius-xl);
+            font-size: 1.1rem;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner::after {
+            content: '';
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--s-blue);
+            border-top-color: var(--p-blue);
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                margin-right: 0;
+                padding: 1.5rem;
+                padding-bottom: 100px;
+            }
+            .desktop-sidebar {
+                display: none;
+            }
+            .mobile-nav {
+                display: flex;
+            }
+            .header-box {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .add-btn {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .students-grid {
+                grid-template-columns: 1fr;
+            }
+            .card-stats {
+                grid-template-columns: 1fr;
+            }
+            .greeting h1 {
+                font-size: 1.4rem;
+            }
+            .student-card {
+                padding: 18px;
+            }
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Desktop Sidebar -->
+    <aside class="desktop-sidebar">
+        <div class="brand">
+            <div class="brand-logo">ISVRT</div>
+            <div class="brand-sub">واقع افتراضي تعليمي</div>
+        </div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-link">
+                <span>🏠</span> الرئيسية
+            </a>
+            <a href="control-panel.html" class="nav-link">
+                <span>🎮</span> التحكم
+            </a>
+            <a href="tracking.html" class="nav-link">
+                <span>📈</span> التقارير
+            </a>
+            <a href="manage-students.html" class="nav-link active">
+                <span>👥</span> الطلاب
+            </a>
+            <a href="settings.html" class="nav-link">
+                <span>⚙️</span> الإعدادات
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Mobile Bottom Navigation - Improved Design -->
+    <nav class="mobile-nav">
+        <a href="dashboard.html" class="nav-item-m">
+            <span>🏠</span>
+            <span>الرئيسية</span>
+        </a>
+        <a href="control-panel.html" class="nav-item-m">
+            <span>🎮</span>
+            <span>التحكم</span>
+        </a>
+        <a href="tracking.html" class="nav-item-m">
+            <span>📈</span>
+            <span>التقارير</span>
+        </a>
+        <a href="manage-students.html" class="nav-item-m active">
+            <span>👥</span>
+            <span>الطلاب</span>
+        </a>
+        <a href="settings.html" class="nav-item-m">
+            <span>⚙️</span>
+            <span>الإعدادات</span>
+        </a>
+    </nav>
+
+    <main class="main-content">
+        <header class="header-box">
+            <div class="greeting">
+                <h1>إدارة الطلاب</h1>
+                <p>قائمة الأطفال المسجلين في النظام</p>
+            </div>
+            <button class="add-btn" id="add-student-trigger">
+                <span>➕</span> إضافة طفل جديد
+            </button>
+        </header>
+
+        <div class="students-grid" id="students-container">
+            <div class="loading-spinner"></div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="student-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">إضافة طفل جديد</h2>
+            <div class="modal-field">
+                <label>👶 اسم الطفل</label>
+                <input type="text" id="child-name" placeholder="أدخل اسم الطفل" autocomplete="off">
+            </div>
+            <div class="modal-field">
+                <label>📚 المستوى التعليمي</label>
+                <select id="child-level">
+                    <option value="مبتدئ">🌟 مبتدئ</option>
+                    <option value="متوسط">⭐ متوسط</option>
+                    <option value="متقدم">🏆 متقدم</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn save" id="save-child">💾 حفظ</button>
+                <button class="modal-btn cancel" id="cancel-modal">❌ إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDp4vlXfdLLG-7LDydtaG1li71gz64VnjI",
+            authDomain: "isvrt-2026.firebaseapp.com",
+            projectId: "isvrt-2026",
+            storageBucket: "isvrt-2026.firebasestorage.app",
+            messagingSenderId: "759775854981",
+            appId: "1:759775854981:web:343abc4affd8dcf383c4ec"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let currentEditId = null;
+        let unsubscribeStudents = null;
+
+        const showToast = (message, isError = false) => {
+            const existingToast = document.querySelector('.toast');
+            if(existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `${isError ? '❌' : '✅'} ${message}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if(toast.parentNode) toast.remove();
+            }, 3000);
+        };
+
+        const loadStudents = () => {
+            if(!currentUser) return;
+            
+            const container = document.getElementById('students-container');
+            
+            // Clean up previous subscription
+            if(unsubscribeStudents) unsubscribeStudents();
+            
+            const studentsRef = collection(db, `users/${currentUser.uid}/children`);
+            const q = query(studentsRef, orderBy('createdAt', 'desc'));
+            
+            unsubscribeStudents = onSnapshot(q, async (querySnapshot) => {
+                container.innerHTML = '';
+                
+                if(querySnapshot.empty) {
+                    container.innerHTML = '<div class="empty-state">📭 لا يوجد أطفال مسجلين حالياً<br>اضغط على زر "إضافة طفل جديد" للبدء</div>';
+                    return;
+                }
+                
+                // Process each child and fetch their stats
+                for (const docChild of querySnapshot.docs) {
+                    const childId = docChild.id;
+                    const child = docChild.data();
+                    
+                    // Get child stats from Firestore
+                    let stats = { sessions: 0, accuracy: 0, xp: 0 };
+                    try {
+                        const statsRef = doc(db, `stats/${childId}`);
+                        const statsSnap = await getDocs(collection(db, `stats`));
+                        // Alternative way to get stats
+                        const statsDoc = await import('https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js').then(({ getDoc }) => getDoc(doc(db, `stats/${childId}`)));
+                        if(statsDoc.exists()) {
+                            stats = statsDoc.data();
+                        }
+                    } catch(e) {
+                        console.error("Error loading stats:", e);
+                    }
+                    
+                    const card = document.createElement('div');
+                    card.className = 'student-card';
+                    card.innerHTML = `
+                        <div class="student-info">
+                            <div class="avatar">${getAvatarIcon(child.name)}</div>
+                            <div>
+                                <p class="name-tag">${escapeHtml(child.name || 'بدون اسم')}</p>
+                                <span class="level-tag">📖 المستوى: ${child.level || 'مبتدئ'}</span>
+                            </div>
+                        </div>
+                        <div class="card-stats">
+                            <div class="stat-item">
+                                <span>📊 الجلسات</span>
+                                <strong>${stats.sessions || 0} جلسة</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span>🎯 متوسط الدقة</span>
+                                <strong>${stats.accuracy || 0}%</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span>⭐ النقاط</span>
+                                <strong>${stats.xp || 0} نقطة</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span>⏱️ آخر نشاط</span>
+                                <strong>${stats.lastActive ? new Date(stats.lastActive).toLocaleDateString('ar-EG') : 'جديد'}</strong>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="action-btn edit" data-id="${childId}" data-name="${escapeHtml(child.name)}" data-level="${child.level || 'مبتدئ'}">
+                                ✏️ تعديل
+                            </button>
+                            <button class="action-btn delete" data-id="${childId}" data-name="${escapeHtml(child.name)}">
+                                🗑️ حذف
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                }
+                
+                // Add event listeners to buttons
+                document.querySelectorAll('.action-btn.edit').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openEditModal(btn.dataset.id, btn.dataset.name, btn.dataset.level);
+                    });
+                });
+                
+                document.querySelectorAll('.action-btn.delete').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        confirmDelete(btn.dataset.id, btn.dataset.name);
+                    });
+                });
+            }, (error) => {
+                console.error("Error loading students:", error);
+                container.innerHTML = '<div class="empty-state">❌ خطأ في تحميل البيانات</div>';
+                showToast("خطأ في تحميل بيانات الطلاب", true);
+            });
+        };
+
+        const getAvatarIcon = (name) => {
+            if(!name) return '👶';
+            const firstChar = name.charAt(0);
+            if(firstChar >= 'ا' && firstChar <= 'ي') return '👦';
+            return '👶';
+        };
+
+        const escapeHtml = (text) => {
+            if(!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        };
+
+        const openEditModal = (id, name, level) => {
+            currentEditId = id;
+            document.getElementById('modal-title').textContent = '✏️ تعديل بيانات الطفل';
+            document.getElementById('child-name').value = name;
+            document.getElementById('child-level').value = level;
+            document.getElementById('student-modal').classList.add('active');
+        };
+
+        const confirmDelete = (id, name) => {
+            if(confirm(`⚠️ هل أنت متأكد من حذف "${name}"؟\nلا يمكن التراجع عن هذا الإجراء.`)) {
+                deleteChild(id);
+            }
+        };
+
+        const deleteChild = async (childId) => {
+            if(!currentUser) return;
+            
+            try {
+                const childRef = doc(db, `users/${currentUser.uid}/children/${childId}`);
+                await deleteDoc(childRef);
+                showToast(`تم حذف الطفل بنجاح`);
+            } catch (error) {
+                console.error("Error deleting child:", error);
+                showToast(`فشل حذف الطفل`, true);
+            }
+        };
+
+        const saveChild = async () => {
+            const name = document.getElementById('child-name').value.trim();
+            const level = document.getElementById('child-level').value;
+            
+            if(!name) {
+                showToast("الرجاء إدخال اسم الطفل", true);
+                return;
+            }
+            
+            if(!currentUser) {
+                showToast("يرجى تسجيل الدخول أولاً", true);
+                return;
+            }
+            
+            try {
+                if(currentEditId) {
+                    // Update existing child
+                    const childRef = doc(db, `users/${currentUser.uid}/children/${currentEditId}`);
+                    await setDoc(childRef, { 
+                        name, 
+                        level,
+                        updatedAt: Date.now()
+                    }, { merge: true });
+                    showToast(`تم تحديث بيانات "${name}" بنجاح`);
+                } else {
+                    // Add new child
+                    const childrenRef = collection(db, `users/${currentUser.uid}/children`);
+                    const newChildRef = doc(childrenRef);
+                    await setDoc(newChildRef, { 
+                        name, 
+                        level,
+                        createdAt: Date.now(),
+                        updatedAt: Date.now()
+                    });
+                    
+                    // Initialize stats for the new child
+                    const statsRef = doc(db, `stats/${newChildRef.id}`);
+                    await setDoc(statsRef, { 
+                        sessions: 0, 
+                        accuracy: 0, 
+                        xp: 0,
+                        totalMinutes: 0,
+                        lastActive: Date.now()
+                    });
+                    
+                    showToast(`تم إضافة "${name}" بنجاح`);
+                }
+                
+                closeModal();
+            } catch (error) {
+                console.error("Error saving child:", error);
+                showToast(`فشل حفظ البيانات`, true);
+            }
+        };
+
+        const closeModal = () => {
+            currentEditId = null;
+            document.getElementById('modal-title').textContent = '➕ إضافة طفل جديد';
+            document.getElementById('child-name').value = '';
+            document.getElementById('child-level').value = 'مبتدئ';
+            document.getElementById('student-modal').classList.remove('active');
+        };
+
+        // Authentication
+        onAuthStateChanged(auth, (user) => {
+            if(user && user.emailVerified) {
+                currentUser = user;
+                loadStudents();
+            } else if(user && !user.emailVerified) {
+                showToast("يرجى تأكيد بريدك الإلكتروني أولاً", true);
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 2000);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // Event Listeners
+        document.getElementById('add-student-trigger').addEventListener('click', () => {
+            currentEditId = null;
+            document.getElementById('modal-title').textContent = '➕ إضافة طفل جديد';
+            document.getElementById('child-name').value = '';
+            document.getElementById('child-level').value = 'مبتدئ';
+            document.getElementById('student-modal').classList.add('active');
+        });
+
+        document.getElementById('save-child').addEventListener('click', saveChild);
+        document.getElementById('cancel-modal').addEventListener('click', closeModal);
+        
+        window.addEventListener('click', (e) => {
+            if(e.target === document.getElementById('student-modal')) {
+                closeModal();
+            }
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if(unsubscribeStudents) unsubscribeStudents();
+        });
+    </script>
+</body>
+</html>

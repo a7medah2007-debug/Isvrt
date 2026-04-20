@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ISVRT - الإعدادات | Firestore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p-blue: #0056b3;
+            --s-blue: #e3f2fd;
+            --accent: #f8fbff;
+            --white: #ffffff;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --shadow: 0 10px 30px rgba(0, 86, 179, 0.05);
+            --shadow-lg: 0 20px 40px rgba(0, 86, 179, 0.1);
+        }
+
+        body.dark {
+            --p-blue: #3b82f6;
+            --s-blue: #1e293b;
+            --accent: #0f172a;
+            --white: #1e293b;
+            --dark: #f1f5f9;
+            --gray: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--s-blue) 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            padding-bottom: 90px;
+            transition: all 0.3s ease;
+        }
+
+        /* Desktop Sidebar */
+        .desktop-sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+            border-left: 1px solid rgba(0, 86, 179, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            z-index: 1000;
+        }
+
+        body.dark .desktop-sidebar {
+            background: rgba(30, 41, 59, 0.95);
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .brand-sub {
+            font-size: 0.7rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--gray);
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link:hover {
+            background: var(--s-blue);
+            color: var(--p-blue);
+            transform: translateX(-5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        /* Mobile Bottom Navigation - Professional Design */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            height: 75px;
+            border-top: 1px solid rgba(0, 86, 179, 0.15);
+            z-index: 2000;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .mobile-nav {
+            background: rgba(30, 41, 59, 0.98);
+        }
+
+        .nav-item-m {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--gray);
+            font-size: 0.7rem;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 8px 16px;
+            border-radius: 40px;
+            gap: 4px;
+            min-width: 70px;
+        }
+
+        .nav-item-m span:first-child {
+            font-size: 1.3rem;
+            transition: transform 0.2s ease;
+        }
+
+        .nav-item-m:hover {
+            background: var(--s-blue);
+            color: var(--p-blue);
+            transform: translateY(-3px);
+        }
+
+        .nav-item-m:hover span:first-child {
+            transform: scale(1.1);
+        }
+
+        .nav-item-m.active {
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3);
+        }
+
+        .nav-item-m.active span:first-child {
+            transform: scale(1.05);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-right: 280px;
+            padding: 2rem;
+            transition: 0.3s;
+        }
+
+        .settings-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: var(--radius-xl);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        body.dark .settings-card {
+            background: rgba(30, 41, 59, 0.95);
+        }
+
+        .settings-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gray);
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--accent);
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.3s;
+            color: var(--dark);
+        }
+
+        .input-group input:focus {
+            border-color: var(--p-blue);
+            background: var(--white);
+        }
+
+        .email-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .email-status.verified {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .email-status.unverified {
+            background: #fee2e2;
+            color: #dc2626;
+            cursor: pointer;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-info h4 {
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .toggle-info p {
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--p-blue);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .btn-save {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-logout, .btn-change-password {
+            width: 100%;
+            padding: 15px;
+            background: #fff1f2;
+            color: var(--danger);
+            border: 1px solid #fecdd3;
+            border-radius: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-change-password {
+            background: var(--s-blue);
+            color: var(--p-blue);
+            border-color: var(--border);
+        }
+
+        .btn-change-password:hover, .btn-logout:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Danger Zone Card */
+        .danger-zone {
+            border: 1px solid #fecdd3;
+            background: rgba(254, 202, 202, 0.1);
+        }
+
+        body.dark .danger-zone {
+            border-color: #7f1d1d;
+            background: rgba(127, 29, 29, 0.1);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 30px;
+            border-radius: var(--radius-xl);
+            max-width: 450px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+        }
+
+        .modal-btn.cancel {
+            background: var(--gray);
+            color: white;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--dark), #1e293b);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            z-index: 3000;
+            animation: slideUp 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                margin-right: 0;
+                padding: 1.5rem;
+                padding-bottom: 100px;
+            }
+            .desktop-sidebar {
+                display: none;
+            }
+            .mobile-nav {
+                display: flex;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .settings-card {
+                padding: 18px;
+            }
+            .section-title {
+                font-size: 1rem;
+            }
+            .toggle-info h4 {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Desktop Sidebar -->
+    <aside class="desktop-sidebar">
+        <div class="brand">
+            <div class="brand-logo">ISVRT</div>
+            <div class="brand-sub">واقع افتراضي تعليمي</div>
+        </div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-link">
+                <span>🏠</span> الرئيسية
+            </a>
+            <a href="control-panel.html" class="nav-link">
+                <span>🎮</span> غرفة التحكم
+            </a>
+            <a href="tracking.html" class="nav-link">
+                <span>📈</span> التتبع
+            </a>
+            <a href="manage-students.html" class="nav-link">
+                <span>👥</span> الطلاب
+            </a>
+            <a href="settings.html" class="nav-link active">
+                <span>⚙️</span> الإعدادات
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Mobile Bottom Navigation - Professional Design -->
+    <nav class="mobile-nav">
+        <a href="dashboard.html" class="nav-item-m">
+            <span>🏠</span>
+            <span>الرئيسية</span>
+        </a>
+        <a href="control-panel.html" class="nav-item-m">
+            <span>🎮</span>
+            <span>التحكم</span>
+        </a>
+        <a href="tracking.html" class="nav-item-m">
+            <span>📈</span>
+            <span>التقارير</span>
+        </a>
+        <a href="manage-students.html" class="nav-item-m">
+            <span>👥</span>
+            <span>الطلاب</span>
+        </a>
+        <a href="settings.html" class="nav-item-m active">
+            <span>⚙️</span>
+            <span>الإعدادات</span>
+        </a>
+    </nav>
+
+    <main class="main-content">
+        <header style="margin-bottom: 2rem;">
+            <h1 style="font-weight: 900; font-size: 1.5rem;">⚙️ الإعدادات العامة</h1>
+            <p style="color:var(--gray); font-size: 0.9rem;">إدارة حسابك وتفضيلات النظام</p>
+        </header>
+
+        <!-- Profile Section -->
+        <div class="settings-card">
+            <h3 class="section-title">👤 الملف الشخصي</h3>
+            <div class="input-group">
+                <label>الاسم الكامل</label>
+                <input type="text" id="user-name" placeholder="أدخل اسمك الكامل">
+            </div>
+            <div class="input-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="user-email" readonly style="opacity: 0.7; background: var(--border);">
+                <span id="email-status" class="email-status"></span>
+            </div>
+            <button class="btn-save" id="save-profile">💾 حفظ التغييرات</button>
+        </div>
+
+        <!-- Preferences Section -->
+        <div class="settings-card">
+            <h3 class="section-title">🛠️ تفضيلات النظام</h3>
+            
+            <div class="toggle-row">
+                <div class="toggle-info">
+                    <h4>🌙 الوضع الليلي</h4>
+                    <p>تغيير ألوان التطبيق لتناسب الإضاءة الضعيفة</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="dark-mode-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-row">
+                <div class="toggle-info">
+                    <h4>🔔 تنبيهات الجلسة</h4>
+                    <p>الحصول على إشعارات عند انتهاء تدريب الطفل</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="notifications-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-row">
+                <div class="toggle-info">
+                    <h4>📊 حفظ بيانات الأداء</h4>
+                    <p>تخزين تفاصيل الجلسات لتحليل التقدم</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="save-analytics-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Security Section -->
+        <div class="settings-card">
+            <h3 class="section-title">🔐 الأمان</h3>
+            <button class="btn-change-password" id="change-password-btn">🔑 تغيير كلمة المرور</button>
+            <button class="btn-change-password" id="verify-email-btn" style="margin-top: 10px;">📧 إعادة إرسال تأكيد البريد</button>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="settings-card danger-zone">
+            <h3 class="section-title" style="color: var(--danger); background: none; -webkit-background-clip: unset;">⚠️ منطقة الخطر</h3>
+            <p style="font-size: 0.8rem; color: var(--gray); margin-bottom: 15px;">تسجيل الخروج سيؤدي إلى فقدان التحكم اللحظي بالنظارة حتى الدخول مرة أخرى.</p>
+            <button class="btn-logout" id="logout-btn">🚪 تسجيل الخروج</button>
+        </div>
+    </main>
+
+    <!-- Logout Modal -->
+    <div id="logout-modal" class="modal">
+        <div class="modal-content">
+            <h2>تأكيد تسجيل الخروج</h2>
+            <p>هل أنت متأكد من رغبتك في تسجيل الخروج؟</p>
+            <div class="modal-buttons">
+                <button class="modal-btn confirm" id="confirm-logout">نعم، تسجيل خروج</button>
+                <button class="modal-btn cancel" id="cancel-logout">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Modal -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <h2>تغيير كلمة المرور</h2>
+            <div class="input-group">
+                <label>🔐 كلمة المرور الحالية</label>
+                <input type="password" id="current-password" placeholder="أدخل كلمة المرور الحالية">
+            </div>
+            <div class="input-group">
+                <label>🆕 كلمة المرور الجديدة</label>
+                <input type="password" id="new-password" placeholder="أدخل كلمة المرور الجديدة">
+            </div>
+            <div class="input-group">
+                <label>✓ تأكيد كلمة المرور الجديدة</label>
+                <input type="password" id="confirm-password" placeholder="أعد إدخال كلمة المرور الجديدة">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn confirm" id="save-password">تغيير</button>
+                <button class="modal-btn cancel" id="cancel-password">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, updateProfile, updatePassword, sendEmailVerification, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDp4vlXfdLLG-7LDydtaG1li71gz64VnjI",
+            authDomain: "isvrt-2026.firebaseapp.com",
+            projectId: "isvrt-2026",
+            storageBucket: "isvrt-2026.firebasestorage.app",
+            messagingSenderId: "759775854981",
+            appId: "1:759775854981:web:343abc4affd8dcf383c4ec"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const showToast = (message, isError = false) => {
+            const existingToast = document.querySelector('.toast');
+            if(existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `${isError ? '❌' : '✅'} ${message}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if(toast.parentNode) toast.remove();
+            }, 3000);
+        };
+
+        const loadUserSettings = async (userId) => {
+            try {
+                const settingsRef = doc(db, `userSettings/${userId}`);
+                const settingsSnap = await getDoc(settingsRef);
+                if(settingsSnap.exists()) {
+                    const settings = settingsSnap.data();
+                    document.getElementById('notifications-toggle').checked = settings.notifications !== false;
+                    document.getElementById('save-analytics-toggle').checked = settings.saveAnalytics !== false;
+                }
+            } catch(e) {
+                console.error("Error loading settings:", e);
+            }
+        };
+
+        const saveUserSettings = async (userId, settings) => {
+            try {
+                const settingsRef = doc(db, `userSettings/${userId}`);
+                await setDoc(settingsRef, settings, { merge: true });
+                return true;
+            } catch(e) {
+                console.error("Error saving settings:", e);
+                return false;
+            }
+        };
+
+        const loadDarkMode = () => {
+            const saved = localStorage.getItem('darkMode') === 'true';
+            if(saved) {
+                document.body.classList.add('dark');
+                document.getElementById('dark-mode-toggle').checked = true;
+            }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if(user && user.emailVerified) {
+                document.getElementById('user-name').value = user.displayName || '';
+                document.getElementById('user-email').value = user.email;
+                
+                const emailStatusSpan = document.getElementById('email-status');
+                if(user.emailVerified) {
+                    emailStatusSpan.textContent = '✓ بريدك مؤكد';
+                    emailStatusSpan.className = 'email-status verified';
+                } else {
+                    emailStatusSpan.textContent = '⚠️ بريدك غير مؤكد - اضغط لإعادة الإرسال';
+                    emailStatusSpan.className = 'email-status unverified';
+                }
+                
+                await loadUserSettings(user.uid);
+            } else if(user && !user.emailVerified) {
+                showToast('يرجى تأكيد بريدك الإلكتروني أولاً', true);
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 2000);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // Save Profile
+        document.getElementById('save-profile').onclick = async () => {
+            const newName = document.getElementById('user-name').value;
+            if(auth.currentUser && newName) {
+                try {
+                    await updateProfile(auth.currentUser, { displayName: newName });
+                    showToast('تم تحديث الاسم بنجاح');
+                } catch (error) {
+                    showToast('فشل تحديث الاسم', true);
+                }
+            }
+        };
+
+        // Dark Mode Toggle
+        document.getElementById('dark-mode-toggle').addEventListener('change', (e) => {
+            if(e.target.checked) {
+                document.body.classList.add('dark');
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                document.body.classList.remove('dark');
+                localStorage.setItem('darkMode', 'false');
+            }
+        });
+
+        // Notifications Toggle
+        document.getElementById('notifications-toggle').addEventListener('change', async (e) => {
+            if(auth.currentUser) {
+                await saveUserSettings(auth.currentUser.uid, { notifications: e.target.checked });
+            }
+            
+            if(e.target.checked) {
+                if(Notification.permission === 'granted') {
+                    showToast('تم تفعيل الإشعارات');
+                } else if(Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(perm => {
+                        if(perm === 'granted') showToast('تم تفعيل الإشعارات');
+                    });
+                }
+            } else {
+                showToast('تم إيقاف الإشعارات');
+            }
+        });
+
+        // Save Analytics Toggle
+        document.getElementById('save-analytics-toggle').addEventListener('change', async (e) => {
+            if(auth.currentUser) {
+                await saveUserSettings(auth.currentUser.uid, { saveAnalytics: e.target.checked });
+                showToast(e.target.checked ? 'تم تفعيل حفظ البيانات' : 'تم إيقاف حفظ البيانات');
+            }
+        });
+
+        // Verify Email Button
+        document.getElementById('verify-email-btn').onclick = async () => {
+            const user = auth.currentUser;
+            if(user && !user.emailVerified) {
+                try {
+                    await sendEmailVerification(user);
+                    showToast('تم إرسال رابط التأكيد إلى بريدك الإلكتروني');
+                } catch(e) {
+                    showToast('فشل إرسال رابط التأكيد', true);
+                }
+            } else if(user && user.emailVerified) {
+                showToast('بريدك الإلكتروني مؤكد بالفعل');
+            }
+        };
+
+        // Email status click for resend
+        document.getElementById('email-status').onclick = async () => {
+            const user = auth.currentUser;
+            if(user && !user.emailVerified) {
+                try {
+                    await sendEmailVerification(user);
+                    showToast('تم إرسال رابط التأكيد إلى بريدك الإلكتروني');
+                } catch(e) {
+                    showToast('فشل إرسال رابط التأكيد', true);
+                }
+            }
+        };
+
+        // Logout Modal
+        const logoutModal = document.getElementById('logout-modal');
+        const passwordModal = document.getElementById('password-modal');
+
+        document.getElementById('logout-btn').onclick = () => {
+            logoutModal.classList.add('active');
+        };
+
+        document.getElementById('confirm-logout').onclick = () => {
+            signOut(auth).then(() => {
+                window.location.href = "login.html";
+            });
+            logoutModal.classList.remove('active');
+        };
+
+        document.getElementById('cancel-logout').onclick = () => {
+            logoutModal.classList.remove('active');
+        };
+
+        // Password Change Modal
+        document.getElementById('change-password-btn').onclick = () => {
+            passwordModal.classList.add('active');
+        };
+
+        document.getElementById('save-password').onclick = async () => {
+            const currentPwd = document.getElementById('current-password').value;
+            const newPwd = document.getElementById('new-password').value;
+            const confirmPwd = document.getElementById('confirm-password').value;
+            
+            if(!currentPwd || !newPwd || !confirmPwd) {
+                showToast('الرجاء ملء جميع الحقول', true);
+                return;
+            }
+            
+            if(newPwd !== confirmPwd) {
+                showToast('كلمة المرور الجديدة غير متطابقة', true);
+                return;
+            }
+            
+            if(newPwd.length < 6) {
+                showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل', true);
+                return;
+            }
+            
+            try {
+                const user = auth.currentUser;
+                const credential = EmailAuthProvider.credential(user.email, currentPwd);
+                await reauthenticateWithCredential(user, credential);
+                await updatePassword(user, newPwd);
+                showToast('تم تغيير كلمة المرور بنجاح');
+                passwordModal.classList.remove('active');
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('confirm-password').value = '';
+            } catch (error) {
+                if(error.code === 'auth/wrong-password') {
+                    showToast('كلمة المرور الحالية غير صحيحة', true);
+                } else {
+                    showToast('فشل تغيير كلمة المرور', true);
+                }
+            }
+        };
+
+        document.getElementById('cancel-password').onclick = () => {
+            passwordModal.classList.remove('active');
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+        };
+
+        // Close modals on outside click
+        logoutModal.addEventListener('click', (e) => {
+            if(e.target === logoutModal) logoutModal.classList.remove('active');
+        });
+        
+        passwordModal.addEventListener('click', (e) => {
+            if(e.target === passwordModal) passwordModal.classList.remove('active');
+        });
+
+        // Initialize
+        loadDarkMode();
+
+        if('Notification' in window) {
+            Notification.requestPermission();
+        }
+    </script>
+</body>
+</html>

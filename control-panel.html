@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ISVRT - لوحة التحكم الذكية | Firestore</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p-blue: #0056b3;
+            --s-blue: #e3f2fd;
+            --accent: #f8fbff;
+            --white: #ffffff;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --shadow: 0 10px 25px rgba(0, 86, 179, 0.05);
+            --shadow-lg: 0 20px 40px rgba(0, 86, 179, 0.1);
+            --shadow-hover: 0 25px 35px -12px rgba(0, 86, 179, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--s-blue) 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .desktop-sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+            border-left: 1px solid rgba(0, 86, 179, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .brand-sub {
+            font-size: 0.7rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--gray);
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link:hover {
+            background: var(--s-blue);
+            color: var(--p-blue);
+            transform: translateX(-5px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            height: 70px;
+            border-top: 1px solid rgba(0, 86, 179, 0.1);
+            z-index: 2000;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .nav-item-m {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--gray);
+            font-size: 0.7rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+
+        .nav-item-m:hover {
+            background: var(--s-blue);
+            color: var(--p-blue);
+        }
+
+        .nav-item-m.active { 
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            color: white;
+        }
+
+        .main-wrapper {
+            margin-right: 280px;
+            padding: 2rem;
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .greeting h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--dark), var(--p-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .controls-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .child-selector {
+            background: var(--white);
+            padding: 8px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .child-selector:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .child-dropdown {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            color: var(--dark);
+            background: var(--white);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .child-dropdown:focus {
+            outline: none;
+            border-color: var(--p-blue);
+        }
+
+        .status-pill {
+            background: var(--white);
+            padding: 8px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .status-pill:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .dot { 
+            width: 10px; 
+            height: 10px; 
+            border-radius: 50%; 
+            background: #cbd5e1;
+            transition: all 0.3s ease;
+        }
+        
+        .dot.active { 
+            background: var(--success); 
+            box-shadow: 0 0 12px var(--success);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: var(--radius-xl);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .mode-card {
+            background: linear-gradient(135deg, #fcfdfe, var(--white));
+            border: 2px solid #f1f5f9;
+            border-radius: var(--radius-lg);
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-card::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(0,86,179,0.1) 0%, transparent 100%);
+            transition: all 0.5s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .mode-card:hover::before {
+            width: 200%;
+            height: 200%;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--p-blue);
+        }
+
+        .mode-card.active {
+            border-color: var(--p-blue);
+            background: linear-gradient(135deg, var(--s-blue), var(--white));
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .mode-icon { font-size: 2.8rem; display: block; margin-bottom: 12px; }
+        .mode-name { font-size: 1.1rem; font-weight: 800; }
+
+        .slider-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8fbff, var(--white));
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        input[type=range] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, var(--p-blue), var(--success));
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 20px 0;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--p-blue), #0077ed);
+            border-radius: 50%;
+            border: 3px solid white;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .btn-launch {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-launch::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-launch:hover::before {
+            left: 100%;
+        }
+
+        .btn-launch:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-launch.active { 
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .summary-row:hover {
+            background: var(--accent);
+            padding-right: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--dark), #1e293b);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            z-index: 3000;
+            animation: slideUp 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .main-wrapper { margin-right: 0; padding-bottom: 100px; }
+            .desktop-sidebar { display: none; }
+            .mobile-nav { display: flex; }
+            .grid-layout { grid-template-columns: 1fr; }
+            .header-section { flex-direction: column; align-items: stretch; }
+            .controls-group { flex-direction: column; }
+            .status-pill, .child-selector { justify-content: center; }
+        }
+
+        @media (max-width: 480px) {
+            .modes-container { grid-template-columns: 1fr; }
+            .card { padding: 18px; }
+            .greeting h1 { font-size: 1.3rem; }
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: var(--s-blue);
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--p-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="desktop-sidebar">
+        <div class="brand">
+            <div class="brand-logo">ISVRT</div>
+            <div class="brand-sub">واقع افتراضي تعليمي</div>
+        </div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-link">
+                <span>🏠</span> الرئيسية
+            </a>
+            <a href="control-panel.html" class="nav-link active">
+                <span>🎮</span> غرفة التحكم
+            </a>
+            <a href="tracking.html" class="nav-link">
+                <span>📈</span> التقارير
+            </a>
+            <a href="settings.html" class="nav-link">
+                <span>⚙️</span> الإعدادات
+            </a>
+        </nav>
+    </aside>
+
+    <nav class="mobile-nav">
+        <a href="dashboard.html" class="nav-item-m"><span>🏠</span>الرئيسية</a>
+        <a href="control-panel.html" class="nav-item-m active"><span>🎮</span>التحكم</a>
+        <a href="tracking.html" class="nav-item-m"><span>📈</span>التقارير</a>
+        <a href="settings.html" class="nav-item-m"><span>⚙️</span>حسابي</a>
+    </nav>
+
+    <main class="main-wrapper">
+        <header class="header-section">
+            <div class="greeting">
+                <h1>التحكم بالمودات</h1>
+                <p style="color:var(--gray); font-size: 0.9rem;">قم بتهيئة الجلسة وإرسالها للنظارة</p>
+            </div>
+            <div class="controls-group">
+                <div class="child-selector">
+                    <span>👶</span>
+                    <select id="child-select" class="child-dropdown">
+                        <option value="">جاري التحميل...</option>
+                    </select>
+                </div>
+                <div class="status-pill">
+                    <div class="dot" id="vr-indicator"></div>
+                    <span id="vr-text">جاري التحميل...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid-layout">
+            <div class="primary-col">
+                <div class="card">
+                    <div class="card-title">
+                        <span>📦</span>
+                        المودات المتاحة
+                    </div>
+                    <div class="modes-container" id="modes-list">
+                        <div class="mode-card active" data-id="super">
+                            <span class="mode-icon">🛒</span>
+                            <span class="mode-name">سوبر ماركت</span>
+                        </div>
+                        <div class="mode-card" data-id="train">
+                            <span class="mode-icon">🚂</span>
+                            <span class="mode-name">قطار</span>
+                        </div>
+                    </div>
+
+                    <div class="slider-box">
+                        <div style="display:flex; justify-content:space-between; font-weight:800;">
+                            <span>درجة الصعوبة</span>
+                            <span id="diff-val" style="color:var(--p-blue); font-size:1.2rem;">1</span>
+                        </div>
+                        <input type="range" min="1" max="5" value="1" id="diff-range">
+                        <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--gray);">
+                            <span>سهل</span>
+                            <span>متوسط</span>
+                            <span>صعب</span>
+                            <span>متقدم</span>
+                            <span>خبير</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="secondary-col">
+                <div class="card">
+                    <div class="card-title">
+                        <span>📄</span>
+                        ملخص الأمر
+                    </div>
+                    <div class="summary-row">
+                        <span>البيئة:</span> 
+                        <strong id="sum-m" style="color:var(--p-blue);">سوبر ماركت</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>الصعوبة:</span> 
+                        <strong id="sum-d" style="color:var(--p-blue);">1</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>المتدرب:</span> 
+                        <strong id="child-name-display" style="color:var(--p-blue);">-</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>المستوى:</span> 
+                        <strong id="child-level-display" style="color:var(--p-blue);">-</strong>
+                    </div>
+                    <div style="margin-top:25px;">
+                        <button class="btn-launch" id="fire-btn">
+                            <span>▶</span> ابدأ البث الآن
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card" style="background: linear-gradient(135deg, #fff9db, #fffbeb); border: 1px solid #fde68a;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">⚠️</span>
+                        <p style="font-size:0.85rem; font-weight:700; color:#856404;">يرجى التأكد من أن الطفل يرتدي النظارة بشكل صحيح قبل البدء.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDp4vlXfdLLG-7LDydtaG1li71gz64VnjI",
+            authDomain: "isvrt-2026.firebaseapp.com",
+            projectId: "isvrt-2026",
+            storageBucket: "isvrt-2026.firebasestorage.app",
+            messagingSenderId: "759775854981",
+            appId: "1:759775854981:web:343abc4affd8dcf383c4ec"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let childrenList = [];
+        let currentChildId = null;
+        let selectedMode = "سوبر ماركت";
+        let activeSession = false;
+        let unsubscribeVR = null;
+
+        const showToast = (message, isError = false) => {
+            const existing = document.querySelector('.toast');
+            if(existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `${isError ? '❌' : '✅'} ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+
+        const loadChildren = async (userId) => {
+            try {
+                const childrenRef = collection(db, `users/${userId}/children`);
+                const snapshot = await getDocs(childrenRef);
+                const select = document.getElementById('child-select');
+                select.innerHTML = '<option value="">اختر الطفل</option>';
+                childrenList = [];
+                
+                snapshot.forEach(docChild => {
+                    const child = { id: docChild.id, ...docChild.data() };
+                    childrenList.push(child);
+                    const option = document.createElement('option');
+                    option.value = child.id;
+                    option.textContent = child.name;
+                    select.appendChild(option);
+                });
+                
+                const savedId = localStorage.getItem('control_selected_child');
+                if(savedId && childrenList.some(c => c.id === savedId)) {
+                    currentChildId = savedId;
+                    select.value = savedId;
+                } else if(childrenList.length > 0) {
+                    currentChildId = childrenList[0].id;
+                    select.value = currentChildId;
+                }
+                
+                if(currentChildId) {
+                    await loadChildData(currentChildId);
+                    subscribeVRStatus(currentChildId);
+                    await checkActiveSession(currentChildId);
+                }
+            } catch(e) { 
+                console.error(e); 
+                showToast("خطأ في تحميل الأطفال", true);
+            }
+        };
+
+        const loadChildData = async (childId) => {
+            if(!currentUser || !childId) return;
+            try {
+                const childRef = doc(db, `users/${currentUser.uid}/children/${childId}`);
+                const snap = await getDoc(childRef);
+                if(snap.exists()) {
+                    const child = snap.data();
+                    document.getElementById('child-name-display').textContent = child.name || '-';
+                    document.getElementById('child-level-display').textContent = child.level || 'مبتدئ';
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        const subscribeVRStatus = (childId) => {
+            if(unsubscribeVR) unsubscribeVR();
+            const vrRef = doc(db, `vrStatus/${childId}`);
+            unsubscribeVR = onSnapshot(vrRef, (docSnap) => {
+                const indicator = document.getElementById('vr-indicator');
+                const text = document.getElementById('vr-text');
+                if(docSnap.exists() && docSnap.data().connected === true) {
+                    indicator.classList.add('active');
+                    text.textContent = 'النظارة متصلة';
+                } else {
+                    indicator.classList.remove('active');
+                    text.textContent = 'النظارة غير متصلة';
+                }
+            }, (err) => { console.error(err); });
+        };
+
+        const checkActiveSession = async (childId) => {
+            try {
+                const sessionRef = doc(db, `vrActiveSession/${childId}`);
+                const snap = await getDoc(sessionRef);
+                if(snap.exists() && snap.data().active === true) {
+                    activeSession = true;
+                    const fireBtn = document.getElementById('fire-btn');
+                    fireBtn.innerHTML = '<span>⏹</span> إيقاف البث';
+                    fireBtn.classList.add('active');
+                } else {
+                    activeSession = false;
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        // إرسال البيانات إلى الرابط الخارجي
+        const sendToExternalLink = (mode, level, childName, childLevel) => {
+            // بناء الرابط مع البيانات
+            const baseUrl = "https://your-unity-app.com/start"; // غير هذا الرابط إلى رابط التطبيق الخاص بك
+            const params = new URLSearchParams({
+                mode: mode,
+                level: level,
+                childName: childName,
+                childLevel: childLevel,
+                userId: currentUser?.uid || '',
+                timestamp: Date.now()
+            });
+            
+            const fullUrl = `${baseUrl}?${params.toString()}`;
+            console.log("سيتم التوجيه إلى:", fullUrl);
+            
+            // فتح الرابط في نافذة جديدة
+            window.open(fullUrl, '_blank');
+            
+            return true;
+        };
+
+        const sendCommandToVR = async (childId, command) => {
+            if (!currentUser || !childId) {
+                showToast("بيانات غير مكتملة", true);
+                return false;
+            }
+            
+            try {
+                const cmdRef = doc(db, `vrCommands/${childId}_${Date.now()}`);
+                await setDoc(cmdRef, {
+                    childId: childId,
+                    mode: command.mode || null,
+                    level: command.level || null,
+                    action: command.action,
+                    timestamp: Date.now(),
+                    status: 'pending',
+                    fromUserId: currentUser.uid
+                });
+                
+                const activeRef = doc(db, `vrActiveSession/${childId}`);
+                if(command.action === 'start') {
+                    await setDoc(activeRef, {
+                        active: true,
+                        mode: command.mode,
+                        level: command.level,
+                        startedAt: Date.now()
+                    });
+                } else if(command.action === 'stop') {
+                    await setDoc(activeRef, { active: false, stoppedAt: Date.now() });
+                }
+                return true;
+            } catch(e) { 
+                console.error(e); 
+                return false;
+            }
+        };
+
+        const updateAnalytics = async (childId, mode, level) => {
+            try {
+                const analyticsRef = doc(db, `analytics/${childId}_${Date.now()}`);
+                await setDoc(analyticsRef, {
+                    childId: childId,
+                    mode: mode,
+                    level: level,
+                    timestamp: Date.now(),
+                    type: 'session_start'
+                });
+            } catch(e) { console.error(e); }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if(user && user.emailVerified) {
+                currentUser = user;
+                await loadChildren(user.uid);
+            } else if(user && !user.emailVerified) {
+                showToast("يرجى تأكيد بريدك الإلكتروني", true);
+                window.location.href = "login.html";
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // Mode selection with custom message
+        document.querySelectorAll('.mode-card').forEach(card => {
+            card.onclick = () => {
+                document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('active'));
+                card.classList.add('active');
+                selectedMode = card.querySelector('.mode-name').textContent;
+                document.getElementById('sum-m').textContent = selectedMode;
+                
+                // رسالة عند الضغط على المود
+                showToast("⏳ مستني النظارة علشان أجهزلك المود", false);
+            };
+        });
+
+        // Difficulty range
+        const range = document.getElementById('diff-range');
+        range.oninput = () => {
+            document.getElementById('diff-val').textContent = range.value;
+            document.getElementById('sum-d').textContent = range.value;
+        };
+
+        // Send command button - now redirects to external link
+        const fireBtn = document.getElementById('fire-btn');
+        fireBtn.onclick = async () => {
+            if(!currentChildId) { 
+                showToast("اختر الطفل أولاً", true); 
+                return; 
+            }
+            if(fireBtn.disabled) return;
+            
+            // جلب بيانات الطفل الحالي
+            const childName = document.getElementById('child-name-display').textContent;
+            const childLevel = document.getElementById('child-level-display').textContent;
+            const difficulty = parseInt(range.value);
+            
+            // إرسال البيانات إلى الرابط الخارجي
+            sendToExternalLink(selectedMode, difficulty, childName, childLevel);
+            
+            // عرض رسالة تأكيد
+            showToast(`🚀 تم إرسال بيانات الجلسة: ${selectedMode} - المستوى ${difficulty}`);
+            
+            // تسجيل التحليلات في Firebase
+            await updateAnalytics(currentChildId, selectedMode, difficulty);
+            
+            // إرسال أمر إلى Firebase (اختياري)
+            const cmd = { mode: selectedMode, level: difficulty, action: "start" };
+            await sendCommandToVR(currentChildId, cmd);
+        };
+
+        // Child selector change
+        document.getElementById('child-select').addEventListener('change', async (e) => {
+            if(e.target.value) {
+                currentChildId = e.target.value;
+                localStorage.setItem('control_selected_child', currentChildId);
+                await loadChildData(currentChildId);
+                subscribeVRStatus(currentChildId);
+                await checkActiveSession(currentChildId);
+                showToast(`تم التبديل إلى الطفل`);
+            }
+        });
+
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            if(unsubscribeVR) unsubscribeVR();
+        });
+    </script>
+</body>
+</html>

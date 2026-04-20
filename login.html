@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>ISVRT - بوابة الوصول</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p-blue: #0056b3;
+            --s-blue: #e3f2fd;
+            --accent: #f8fbff;
+            --white: #ffffff;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --border: #e2e8f0;
+            --error: #ef4444;
+            --success: #10b981;
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --shadow: 0 20px 40px rgba(0, 86, 179, 0.08);
+            --shadow-lg: 0 25px 50px rgba(0, 86, 179, 0.15);
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--s-blue) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+        nav {
+            padding: 1.2rem 5%;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 1px 20px rgba(0,0,0,0.03);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo { 
+            font-size: 1.8rem; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, var(--p-blue), #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none; 
+            letter-spacing: -0.5px;
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(8px);
+            width: 100%;
+            max-width: 440px;
+            border-radius: 32px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .auth-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Tabs */
+        .tab-switcher {
+            display: flex;
+            margin-bottom: 2rem;
+            background: var(--s-blue);
+            border-radius: 60px;
+            padding: 4px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            border-radius: 60px;
+        }
+        
+        .tab-btn.active { 
+            background: linear-gradient(135deg, var(--p-blue), #3b82f6);
+            color: var(--white); 
+            box-shadow: 0 4px 12px rgba(0, 86, 179, 0.25);
+        }
+
+        /* Forms */
+        .form-section { 
+            display: none; 
+            animation: fadeInUp 0.35s ease; 
+        }
+        .form-section.active { display: block; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .field { 
+            margin-bottom: 1.25rem; 
+            text-align: right; 
+        }
+        
+        .field label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            color: var(--dark); 
+        }
+        
+        .field input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            outline: none;
+            transition: all 0.25s ease;
+            font-size: 0.95rem;
+            background: var(--white);
+            color: var(--dark);
+        }
+        
+        .field input:focus { 
+            border-color: var(--p-blue); 
+            background: var(--accent); 
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.08);
+        }
+
+        /* Buttons */
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--p-blue), #3b82f6);
+            color: var(--white);
+            border: none;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-action:hover:not(:disabled) { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(0, 86, 179, 0.3);
+            opacity: 0.95;
+        }
+        
+        .btn-action:disabled { 
+            opacity: 0.6; 
+            cursor: not-allowed; 
+        }
+
+        /* Google Button */
+        .btn-google {
+            width: 100%;
+            padding: 12px;
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 60px;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: var(--dark);
+        }
+        
+        .btn-google:hover:not(:disabled) { 
+            background: var(--s-blue); 
+            border-color: var(--p-blue); 
+            transform: translateY(-2px);
+        }
+        
+        .btn-google:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Links */
+        .forgot-link {
+            text-align: center;
+            margin-top: 16px;
+        }
+        
+        .forgot-link a {
+            color: var(--p-blue);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .forgot-link a:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 22px 0 18px;
+            color: var(--gray);
+            font-size: 0.75rem;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .divider::before {
+            margin-left: 1rem;
+        }
+        
+        .divider::after {
+            margin-right: 1rem;
+        }
+
+        /* Toast Notification */
+        #status {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            left: 20px;
+            max-width: 360px;
+            padding: 14px 20px;
+            border-radius: 60px;
+            color: white;
+            display: none;
+            z-index: 9999;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            margin: 0 auto;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(6px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 28px;
+            max-width: 400px;
+            width: 90%;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: var(--p-blue);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, var(--p-blue), #3b82f6);
+            color: white;
+        }
+
+        .modal-btn.confirm:hover {
+            transform: translateY(-2px);
+            opacity: 0.95;
+        }
+
+        .modal-btn.cancel {
+            background: var(--gray);
+            color: white;
+        }
+
+        .modal-btn.cancel:hover {
+            background: #5a6e8a;
+        }
+
+        /* Footer */
+        footer {
+            padding: 1.2rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+        
+        footer p { 
+            font-size: 0.7rem; 
+            color: var(--gray); 
+        }
+
+        @media (max-width: 480px) {
+            .auth-card { 
+                padding: 1.5rem; 
+                margin: 0 12px; 
+            }
+            .logo { font-size: 1.4rem; }
+            .tab-btn { 
+                padding: 10px; 
+                font-size: 0.85rem; 
+            }
+            .field input {
+                padding: 11px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="index.html" class="logo">ISVRT</a>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="auth-card">
+            <div class="tab-switcher">
+                <button class="tab-btn active" id="btn-login-tab">دخول</button>
+                <button class="tab-btn" id="btn-signup-tab">حساب جديد</button>
+            </div>
+
+            <!-- Login Section -->
+            <div id="login-sect" class="form-section active">
+                <div class="field">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="l-email" placeholder="example@isvrt.com" autocomplete="email">
+                </div>
+                <div class="field">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <button class="btn-action" id="do-login">دخول النظام</button>
+                <div class="forgot-link">
+                    <a href="#" id="forgot-password-link">نسيت كلمة المرور؟</a>
+                </div>
+            </div>
+
+            <!-- Signup Section -->
+            <div id="signup-sect" class="form-section">
+                <div class="field">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="s-name" placeholder="مثلاً: أحمد محمد" autocomplete="name">
+                </div>
+                <div class="field">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="s-email" placeholder="example@isvrt.com" autocomplete="email">
+                </div>
+                <div class="field">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="s-pass" placeholder="6 أحرف على الأقل" autocomplete="new-password">
+                </div>
+                <button class="btn-action" id="do-signup">إنشاء حساب</button>
+            </div>
+
+            <div class="divider">أو</div>
+
+            <button class="btn-google" id="google-btn">
+                <img src="https://img.icons8.com/color/18/000000/google-logo.png" alt="Google" style="width: 18px; height: 18px;">
+                دخول بواسطة جوجل
+            </button>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal -->
+    <div id="reset-modal" class="modal">
+        <div class="modal-content">
+            <h2>استعادة كلمة المرور</h2>
+            <div class="field">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="reset-email" placeholder="أدخل بريدك الإلكتروني">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn confirm" id="send-reset">إرسال رابط الاستعادة</button>
+                <button class="modal-btn cancel" id="cancel-reset">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="status"></div>
+
+    <footer>
+        <p>جميع الحقوق محفوظة © 2026 - جامعة بني سويف</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            GoogleAuthProvider, 
+            signInWithPopup,
+            updateProfile,
+            onAuthStateChanged,
+            sendEmailVerification,
+            sendPasswordResetEmail
+        } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDp4vlXfdLLG-7LDydtaG1li71gz64VnjI",
+            authDomain: "isvrt-2026.firebaseapp.com",
+            projectId: "isvrt-2026",
+            storageBucket: "isvrt-2026.firebasestorage.app",
+            messagingSenderId: "759775854981",
+            appId: "1:759775854981:web:343abc4affd8dcf383c4ec"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        // DOM Elements
+        const loginTab = document.getElementById('btn-login-tab');
+        const signupTab = document.getElementById('btn-signup-tab');
+        const loginSect = document.getElementById('login-sect');
+        const signupSect = document.getElementById('signup-sect');
+        const statusDiv = document.getElementById('status');
+        const resetModal = document.getElementById('reset-modal');
+        const forgotLink = document.getElementById('forgot-password-link');
+
+        // Tab switching
+        loginTab.onclick = () => {
+            loginTab.classList.add('active');
+            signupTab.classList.remove('active');
+            loginSect.classList.add('active');
+            signupSect.classList.remove('active');
+        };
+
+        signupTab.onclick = () => {
+            signupTab.classList.add('active');
+            loginTab.classList.remove('active');
+            signupSect.classList.add('active');
+            loginSect.classList.remove('active');
+        };
+
+        // Toast notification
+        const notify = (msg, type = 'ok') => {
+            statusDiv.textContent = msg;
+            statusDiv.style.background = type === 'err' ? '#ef4444' : '#10b981';
+            statusDiv.style.display = 'block';
+            setTimeout(() => { 
+                statusDiv.style.opacity = '0';
+                setTimeout(() => { 
+                    statusDiv.style.display = 'none';
+                    statusDiv.style.opacity = '1';
+                }, 300);
+            }, 4000);
+        };
+
+        const setButtonLoading = (button, isLoading) => {
+            if(button) {
+                button.disabled = isLoading;
+                button.style.opacity = isLoading ? '0.6' : '1';
+            }
+        };
+
+        // Save user to Firestore
+        const saveUserToFirestore = async (userId, userData) => {
+            try {
+                await setDoc(doc(db, "users", userId), userData, { merge: true });
+                return true;
+            } catch (error) {
+                console.error("Firestore error:", error);
+                return false;
+            }
+        };
+
+        // Check if user exists
+        const checkIfUserExistsInFirestore = async (uid) => {
+            try {
+                const docSnap = await getDoc(doc(db, "users", uid));
+                return docSnap.exists();
+            } catch (error) {
+                console.error("Check exists error:", error);
+                return false;
+            }
+        };
+
+        // Login handler
+        const handleLogin = async () => {
+            const loginBtn = document.getElementById('do-login');
+            const email = document.getElementById('l-email').value.trim();
+            const pass = document.getElementById('l-pass').value;
+            
+            if(!email || !pass) {
+                notify("يرجى ملء كافة الخانات", "err");
+                return;
+            }
+
+            setButtonLoading(loginBtn, true);
+            
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+                
+                if(!user.emailVerified) {
+                    await auth.signOut();
+                    notify("يرجى تأكيد بريدك الإلكتروني أولاً", "err");
+                    setButtonLoading(loginBtn, false);
+                    return;
+                }
+                
+                notify("تم الدخول بنجاح... جاري التحويل");
+                setTimeout(() => {
+                    window.location.href = "dashboard.html";
+                }, 800);
+            } catch (e) {
+                if(e.code === 'auth/user-not-found') notify("البريد الإلكتروني غير مسجل", "err");
+                else if(e.code === 'auth/wrong-password') notify("كلمة المرور غير صحيحة", "err");
+                else if(e.code === 'auth/invalid-credential') notify("بيانات الدخول غير صحيحة", "err");
+                else if(e.code === 'auth/too-many-requests') notify("تم تعطيل الحساب مؤقتاً. حاول لاحقاً", "err");
+                else notify("حدث خطأ، حاول مرة أخرى", "err");
+                setButtonLoading(loginBtn, false);
+            }
+        };
+
+        // Signup handler
+        const handleSignup = async () => {
+            const signupBtn = document.getElementById('do-signup');
+            const name = document.getElementById('s-name').value.trim();
+            const email = document.getElementById('s-email').value.trim();
+            const pass = document.getElementById('s-pass').value;
+
+            if(!name || !email || !pass) {
+                notify("يرجى إكمال البيانات", "err");
+                return;
+            }
+
+            if(pass.length < 6) {
+                notify("كلمة المرور يجب أن تكون 6 أحرف على الأقل", "err");
+                return;
+            }
+
+            setButtonLoading(signupBtn, true);
+            
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+                
+                await updateProfile(user, { displayName: name });
+                
+                const userData = {
+                    uid: user.uid,
+                    name: name,
+                    email: email,
+                    role: "user",
+                    createdAt: new Date().toISOString(),
+                    emailVerified: false
+                };
+                
+                await saveUserToFirestore(user.uid, userData);
+                await sendEmailVerification(user);
+                await auth.signOut();
+                
+                notify("تم إنشاء الحساب! تم إرسال رابط التأكيد إلى بريدك الإلكتروني");
+                
+                document.getElementById('s-name').value = '';
+                document.getElementById('s-email').value = '';
+                document.getElementById('s-pass').value = '';
+                
+                loginTab.click();
+                
+            } catch (e) {
+                if(e.code === 'auth/email-already-in-use') notify("البريد الإلكتروني مستخدم بالفعل", "err");
+                else if(e.code === 'auth/invalid-email') notify("البريد الإلكتروني غير صالح", "err");
+                else if(e.code === 'auth/weak-password') notify("كلمة المرور ضعيفة جداً", "err");
+                else notify("فشل إنشاء الحساب", "err");
+                console.error(e);
+            } finally {
+                setButtonLoading(signupBtn, false);
+            }
+        };
+
+        // Google Login handler
+        const handleGoogleLogin = async () => {
+            const googleBtn = document.getElementById('google-btn');
+            setButtonLoading(googleBtn, true);
+            
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                const userExists = await checkIfUserExistsInFirestore(user.uid);
+                
+                if(!userExists) {
+                    const userData = {
+                        uid: user.uid,
+                        name: user.displayName || "مستخدم Google",
+                        email: user.email,
+                        role: "user",
+                        createdAt: new Date().toISOString(),
+                        emailVerified: user.emailVerified || false
+                    };
+                    await saveUserToFirestore(user.uid, userData);
+                }
+                
+                notify("تم الدخول بواسطة جوجل بنجاح");
+                setTimeout(() => {
+                    window.location.href = "dashboard.html";
+                }, 800);
+            } catch (e) {
+                if(e.code === 'auth/popup-closed-by-user') notify("تم إغلاق النافذة المنبثقة", "err");
+                else if(e.code === 'auth/popup-blocked') notify("تم حظر النافذة المنبثقة، يرجى السماح بها", "err");
+                else notify("فشل تسجيل الدخول بواسطة جوجل", "err");
+                console.error(e);
+            } finally {
+                setButtonLoading(googleBtn, false);
+            }
+        };
+
+        // Reset Password handler
+        const handleResetPassword = async () => {
+            const resetBtn = document.getElementById('send-reset');
+            const email = document.getElementById('reset-email').value.trim();
+            
+            if(!email) {
+                notify("يرجى إدخال البريد الإلكتروني", "err");
+                return;
+            }
+            
+            setButtonLoading(resetBtn, true);
+            
+            try {
+                await sendPasswordResetEmail(auth, email);
+                notify("تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني");
+                resetModal.classList.remove('active');
+                document.getElementById('reset-email').value = '';
+            } catch (e) {
+                if(e.code === 'auth/user-not-found') notify("لا يوجد حساب مرتبط بهذا البريد", "err");
+                else if(e.code === 'auth/invalid-email') notify("البريد الإلكتروني غير صالح", "err");
+                else notify("فشل إرسال رابط الاستعادة", "err");
+            } finally {
+                setButtonLoading(resetBtn, false);
+            }
+        };
+
+        // Redirect if already logged in
+        const redirectIfLoggedIn = () => {
+            onAuthStateChanged(auth, async (user) => {
+                if(user && user.emailVerified) {
+                    window.location.href = "dashboard.html";
+                } else if(user && !user.emailVerified) {
+                    notify("يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول", "err");
+                    await auth.signOut();
+                }
+            });
+        };
+
+        // Modal handlers
+        forgotLink.onclick = (e) => {
+            e.preventDefault();
+            resetModal.classList.add('active');
+        };
+
+        document.getElementById('send-reset').onclick = handleResetPassword;
+        document.getElementById('cancel-reset').onclick = () => {
+            resetModal.classList.remove('active');
+            document.getElementById('reset-email').value = '';
+        };
+
+        resetModal.onclick = (e) => {
+            if(e.target === resetModal) {
+                resetModal.classList.remove('active');
+                document.getElementById('reset-email').value = '';
+            }
+        };
+
+        // Enter key support
+        const handleEnterKey = (e) => {
+            if(e.key === 'Enter') {
+                if(loginSect.classList.contains('active')) {
+                    handleLogin();
+                } else if(signupSect.classList.contains('active')) {
+                    handleSignup();
+                }
+            }
+        };
+
+        document.getElementById('l-pass').addEventListener('keypress', handleEnterKey);
+        document.getElementById('s-pass').addEventListener('keypress', handleEnterKey);
+
+        // Event listeners
+        document.getElementById('do-login').onclick = handleLogin;
+        document.getElementById('do-signup').onclick = handleSignup;
+        document.getElementById('google-btn').onclick = handleGoogleLogin;
+
+        // Input focus effects
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(inp => {
+            inp.onfocus = () => {
+                inp.style.borderColor = 'var(--p-blue)';
+                inp.style.boxShadow = '0 0 0 3px rgba(0, 86, 179, 0.08)';
+            };
+            inp.onblur = () => {
+                inp.style.borderColor = 'var(--border)';
+                inp.style.boxShadow = 'none';
+            };
+        });
+
+        // Initialize
+        redirectIfLoggedIn();
+
+        // Network status
+        window.addEventListener('online', () => notify("أنت متصل الآن"));
+        window.addEventListener('offline', () => notify("انقطع الاتصال بالإنترنت", "err"));
+    </script>
+</body>
+</html>
